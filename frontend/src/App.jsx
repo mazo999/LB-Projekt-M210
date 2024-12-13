@@ -3,6 +3,7 @@ import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
 import ModuleDropdown from "./components/ModuleDropdown.jsx";
+import ModuleManager from "./components/ModuleManager.jsx";
 
 import { createClient } from "@supabase/supabase-js";
 import { Auth } from "@supabase/auth-ui-react";
@@ -32,12 +33,14 @@ function App() {
   if (!session) {
     return <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />;
   } else {
+    const email = session?.user?.email;
     return (
       <>
         {" "}
-        <div>Logged in!</div>
+        <div>Logged in as{email === "xum879@gmail.com" && " Admin"}</div>
         <>
-          <ModuleDropdown />
+          {email !== "xum879@gmail.com" && <ModuleDropdown />}
+          <ModuleManager />
         </>
       </>
     );
