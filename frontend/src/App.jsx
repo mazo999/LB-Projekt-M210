@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
+import ModuleDropdown from "./components/ModuleDropdown.jsx";
 
 import { createClient } from "@supabase/supabase-js";
 import { Auth } from "@supabase/auth-ui-react";
@@ -31,7 +32,15 @@ function App() {
   if (!session) {
     return <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />;
   } else {
-    return <div>Logged in!</div>;
+    return (
+      <>
+        {" "}
+        <div>Logged in!</div>
+        <>
+          <ModuleDropdown />
+        </>
+      </>
+    );
   }
 }
 
