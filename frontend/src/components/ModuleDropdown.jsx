@@ -22,7 +22,12 @@ const ModuleDropdown = ({ onSelectModule }) => {
   }, []);
 
   return (
-    <select onChange={(e) => onSelectModule(e.target.value)}>
+    <select
+      onChange={(e) => {
+        const value = e.target.value;
+        if (value) onSelectModule(value);
+      }}
+    >
       <option value="">Select a Module</option>
       {modules.map((module) => (
         <option key={module.id} value={module.id}>

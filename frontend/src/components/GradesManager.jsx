@@ -79,6 +79,44 @@ const GradesManager = ({ moduleId }) => {
     }
   };
 
+  const updateGrade = async (id, updatedGrade) => {
+    try {
+      const { error } = await supabase
+        .from("grade")
+        .update({ note: parseFloat(updatedGrade) })
+        .eq("id", id);
+
+      if (error) {
+        console.error("Error updating grade:", error);
+      } else {
+        setGrades((prev) =>
+          prev.map((grade) =>
+            grade.id === id
+              ? { ...grade, note: parseFloat(updatedGrade) }
+              : grade
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error updating grade:", error.message);
+    }
+  };
+
+  // Note löschen
+  const deleteGrade = async (id) => {
+    try {
+      const { error } = await supabase.from("grade").delete().eq("id", id);
+
+      if (error) {
+        console.error("Error deleting grade:", error);
+      } else {
+        setGrades((prev) => prev.filter((grade) => grade.id !== id));
+      }
+    } catch (error) {
+      console.error("Error deleting grade:", error.message);
+    }
+  };
+
   useEffect(() => {
     if (moduleId) {
       console.log("Module ID updated, fetching grades...");

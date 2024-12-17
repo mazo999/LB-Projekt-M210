@@ -17,17 +17,26 @@ function App() {
   const [selectedModule, setSelectedModule] = useState(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const fetchSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session);
+    };
+
+    fetchSession();
+
+    // Listener für Sitzungsänderungen einrichten
+    const unsubscribe = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
+    // Listener sicher entfernen
+    return () => {
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
   }, []);
 
   if (!session) {

@@ -23,6 +23,26 @@ const ModuleManager = () => {
     fetchModules();
   }, []);
 
+  const addModule = async () => {
+    if (!newName) {
+      alert("Please enter a module name");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("module")
+      .insert([{ modul: newName }])
+      .select();
+
+    if (error) {
+      console.error("Error adding module:", error);
+    } else {
+      setModules((prev) => [...prev, ...data]);
+      setNewName("");
+      console.log("Module added successfully:", data);
+    }
+  };
+
   const updateModule = async () => {
     const { data, error } = await supabase
       .from("module")
@@ -69,6 +89,7 @@ const ModuleManager = () => {
         onChange={(e) => setNewName(e.target.value)}
         placeholder="New Module Name"
       />
+      <button onClick={addModule}>Add Module</button>
       <button onClick={updateModule}>Update Module</button>
       <button onClick={deleteModule}>Delete Module</button>
     </div>
