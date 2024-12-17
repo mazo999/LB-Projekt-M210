@@ -1,147 +1,147 @@
 import React, { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
 
+// Supabase-Client initialisieren
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const GradesManager = ({ moduleId }) => {
-  const [grades, setGrades] = useState([]);
-  const [newGrade, setNewGrade] = useState("");
+  const [grades, setGrades] = useState([]); // Notenliste
+  const [moduleName, setModuleName] = useState(""); // Modulname
+  const [newGrade, setNewGrade] = useState(""); // Neue Note
+  const [error, setError] = useState(""); // Fehlerzustand für Validierung
 
-  // Noten für das Modul abrufen
+  // Modulname abrufen
+  const fetchModuleName = async () => {
+    const { data, error } = await supabase
+      .from("module")
+      .select("modul")
+      .eq("id", moduleId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching module name:", error);
+    } else {
+      setModuleName(data.modul);
+    }
+  };
+
+  // Noten abrufen
   const fetchGrades = async () => {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const user = session?.user;
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
 
-      if (!user) throw new Error("User not authenticated");
+    if (!user) return;
 
-      console.log("Fetching grades for module:", moduleId, "user:", user.id);
+    const { data, error } = await supabase
+      .from("grade")
+      .select("id, note, created_at")
+      .eq("modul", moduleId)
+      .eq("user", user.id);
 
-      const { data, error } = await supabase
-        .from("grade")
-        .select("id, note, created_at")
-        .eq("modul", moduleId)
-        .eq("user", user.id);
-
-      if (error) {
-        console.error("Error fetching grades:", error);
-        setGrades([]); // Setze den Zustand auf eine leere Liste bei Fehlern
-      } else {
-        console.log("Fetched grades:", data);
-        setGrades(data || []);
-      }
-    } catch (error) {
-      console.error("Error fetching grades:", error.message);
+    if (error) {
+      console.error("Error fetching grades:", error);
+    } else {
+      setGrades(data || []);
     }
   };
 
   // Neue Note hinzufügen
   const addGrade = async () => {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const user = session?.user;
-
-      if (!user) throw new Error("User not authenticated");
-
-      if (isNaN(newGrade) || newGrade < 0 || newGrade > 6) {
-        alert("Please enter a valid grade between 0 and 6.");
-        return;
-      }
-
-      console.log("Adding grade:", {
-        modul: moduleId,
-        note: parseFloat(newGrade),
-        user: user.id,
-      });
-
-      const { data, error } = await supabase
-        .from("grade")
-        .insert([
-          { modul: moduleId, note: parseFloat(newGrade), user: user.id },
-        ])
-        .select();
-
-      if (error) {
-        console.error("Error adding grade:", error);
-      } else {
-        console.log("Grade added successfully:", data);
-        setGrades((prev) => [...prev, ...data]);
-        setNewGrade("");
-      }
-    } catch (error) {
-      console.error("Error adding grade:", error.message);
+    if (isNaN(newGrade) || newGrade < 0 || newGrade > 6) {
+      setError("Please enter a valid grade between 0 and 6.");
+      return;
     }
-  };
+    setError("");
 
-  const updateGrade = async (id, updatedGrade) => {
-    try {
-      const { error } = await supabase
-        .from("grade")
-        .update({ note: parseFloat(updatedGrade) })
-        .eq("id", id);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const user = session?.user;
 
-      if (error) {
-        console.error("Error updating grade:", error);
-      } else {
-        setGrades((prev) =>
-          prev.map((grade) =>
-            grade.id === id
-              ? { ...grade, note: parseFloat(updatedGrade) }
-              : grade
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Error updating grade:", error.message);
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("grade")
+      .insert([{ modul: moduleId, note: parseFloat(newGrade), user: user.id }])
+      .select();
+
+    if (error) {
+      console.error("Error adding grade:", error);
+    } else {
+      setGrades((prev) => [...prev, ...data]);
+      setNewGrade("");
     }
   };
 
   // Note löschen
   const deleteGrade = async (id) => {
-    try {
-      const { error } = await supabase.from("grade").delete().eq("id", id);
+    const { error } = await supabase.from("grade").delete().eq("id", id);
 
-      if (error) {
-        console.error("Error deleting grade:", error);
-      } else {
-        setGrades((prev) => prev.filter((grade) => grade.id !== id));
-      }
-    } catch (error) {
-      console.error("Error deleting grade:", error.message);
+    if (error) {
+      console.error("Error deleting grade:", error);
+    } else {
+      setGrades((prev) => prev.filter((grade) => grade.id !== id));
+    }
+  };
+
+  // Note aktualisieren
+  const updateGrade = async (id) => {
+    const updatedNote = prompt("Enter the updated grade (0-6):");
+    if (isNaN(updatedNote) || updatedNote < 0 || updatedNote > 6) {
+      alert("Please enter a valid grade between 0 and 6.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("grade")
+      .update({ note: parseFloat(updatedNote) })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error updating grade:", error);
+    } else {
+      setGrades((prev) =>
+        prev.map((grade) =>
+          grade.id === id ? { ...grade, note: parseFloat(updatedNote) } : grade
+        )
+      );
     }
   };
 
   useEffect(() => {
     if (moduleId) {
-      console.log("Module ID updated, fetching grades...");
-      fetchGrades(); // Abrufen der Noten, wenn `moduleId` aktualisiert wird
+      fetchModuleName();
+      fetchGrades();
     }
-  }, [moduleId]); // Effekt wird ausgeführt, wenn sich `moduleId` ändert
+  }, [moduleId]);
 
   return (
     <div>
-      <h2>Grades for Module {moduleId}</h2>
+      <h2>
+        Noten Modul: <strong>{moduleName || "Unbekanntes Modul"}</strong>
+      </h2>
       <ul>
         {grades.map((grade) => (
-          <li key={grade.id}>
-            {grade.note} - {new Date(grade.created_at).toLocaleString()}
-            <button
-              onClick={() =>
-                updateGrade(grade.id, prompt("Update grade:", grade.note))
-              }
-            >
-              Edit
-            </button>
-            <button onClick={() => deleteGrade(grade.id)}>Delete</button>
+          <li key={grade.id} className="grade-item">
+            {/* Noten und Datum linksbündig */}
+            <span>
+              {grade.note} - {new Date(grade.created_at).toLocaleString()}
+            </span>
+
+            {/* Buttons rechtsbündig */}
+            <div className="grade-buttons">
+              <button onClick={() => updateGrade(grade.id)}>Update</button>
+              <button onClick={() => deleteGrade(grade.id)}>Delete</button>
+            </div>
           </li>
         ))}
       </ul>
+
+      {/* Eingabe für neue Noten */}
       <input
         type="number"
         value={newGrade}
@@ -149,6 +149,9 @@ const GradesManager = ({ moduleId }) => {
         placeholder="Add grade"
       />
       <button onClick={addGrade}>Add Grade</button>
+
+      {/* Validierungs-Fehlermeldung anzeigen */}
+      {error && <div className="error">{error}</div>}
     </div>
   );
 };

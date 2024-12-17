@@ -11,9 +11,9 @@ const ModuleDropdown = ({ onSelectModule }) => {
   useEffect(() => {
     const fetchModules = async () => {
       const { data, error } = await supabase.from("module").select("id, modul");
-      if (error) {
-        console.error("Error fetching modules:", error);
-      } else {
+      if (error) console.error("Error fetching modules:", error);
+      else {
+        console.log("Modules fetched:", data); // Debugging
         setModules(data);
       }
     };
@@ -25,6 +25,7 @@ const ModuleDropdown = ({ onSelectModule }) => {
     <select
       onChange={(e) => {
         const value = e.target.value;
+        console.log("Selected module ID:", value); // Debugging
         if (value) onSelectModule(value);
       }}
     >
