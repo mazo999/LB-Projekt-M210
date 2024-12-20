@@ -14,8 +14,8 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: m210/frontend
+        working-directory: LB-Projekt-M210/frontend
 
       - name: Build project
         run: npm run build
-        working-directory: m210/frontend
+        working-directory: LB-Projekt-M210/frontend
