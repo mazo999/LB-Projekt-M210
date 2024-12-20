@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Change directory
-        run: cd ..
+        run: cd LB-Projekt-M210/tree/main/frontend
 
       - name: Install dependencies
         run: npm install
