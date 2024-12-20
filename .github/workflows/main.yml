@@ -13,10 +13,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          cd m210/frontend
+          cd LB-Projekt-M210/frontend
           npm install
 
       - name: Build project
         run: |
-          cd m210/frontend
+          cd LB-Projekt-M210/frontend
           npm run build
